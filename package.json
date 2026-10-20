@@ -1,0 +1,40 @@
+{
+	"name": "playwright-mock-microphone",
+	"version": "0.1.0",
+	"description": "A fake microphone for Playwright tests: feed getUserMedia a tone or an audio file, or deny it, on Chromium, Firefox and WebKit",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./index.d.ts",
+			"default": "./index.js"
+		}
+	},
+	"files": [
+		"index.js",
+		"index.d.ts"
+	],
+	"scripts": {
+		"test": "playwright test"
+	},
+	"keywords": [
+		"playwright",
+		"microphone",
+		"getUserMedia",
+		"MediaRecorder",
+		"audio",
+		"mock",
+		"testing",
+		"webkit"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ya8282/playwright-mock-microphone.git"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=18"
+	},
+	"devDependencies": {
+		"@playwright/test": "1.63.0"
+	}
+}
