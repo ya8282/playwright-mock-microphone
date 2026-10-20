@@ -42,9 +42,11 @@ No runtime dependencies. Needs `@playwright/test` (any recent version) and Node 
 ## Behaviour worth knowing
 
 - **WebKit needs a real user gesture.** Start recording from `page.click()` on your app's own button, as a user would. Starting `MediaRecorder` or resuming audio from `page.evaluate()` throws `NotAllowedError` on WebKit.
-- **Silence is real silence.** The track always delivers samples, as a real microphone does. Without that, Chromium and WebKit record a file `decodeAudioData` rejects with `EncodingError`.
+- **Silence is a quiet noise floor, not digital zero.** The track always delivers samples at about -80 dBFS, as a real microphone does. With no samples, or with digital zero on a context created before the user gesture, Chromium and WebKit record a file that `decodeAudioData` rejects with `EncodingError`.
+- **`getUserMedia` resolves once audio is flowing.** Firefox on Linux can take over 300 ms to start an `AudioContext`, so the mock waits (up to 2 s) for it to run before returning the stream, as a real device would.
 - **Each caller gets its own stream.** One consumer calling `track.stop()` does not end the stream another consumer holds.
 - **No permission prompt** appears for audio, because the mock never reaches the browser's permission layer.
+- **Playwright's Linux WebKit has no `MediaRecorder`** (measured on 1.63.0, WebKit 26.6). The mock still feeds `getUserMedia` there, but nothing can record it, so run recording tests for WebKit on macOS. This repo's CI does exactly that.
 - **Firefox on headless Linux needs an audio server** (`pulseaudio --start`), or its `AudioContext` never runs. See `.github/workflows/ci.yml`.
 - **Lossy codecs smear the edges.** WebKit records AAC, Chromium and Firefox Opus. Assert on the steady part of a recording, not on its first and last few milliseconds.
 - `navigator.mediaDevices` exists only in a secure context: HTTPS or `localhost`.

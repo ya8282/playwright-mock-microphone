@@ -7,17 +7,27 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Playwright's Linux WebKit has no MediaRecorder, so WebKit runs on macOS.
+          - os: ubuntu-latest
+            projects: --project=chromium --project=firefox
+          - os: macos-latest
+            projects: --project=webkit
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm ci
-      - run: npx playwright install --with-deps
+      - run: npx playwright install --with-deps ${{ matrix.os == 'macos-latest' && 'webkit' || 'chromium firefox' }}
       - name: Start PulseAudio (Firefox needs an audio backend on headless Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y pulseaudio
           pulseaudio --start --exit-idle-time=-1
-      - run: npm test
+      - run: npx playwright test ${{ matrix.projects }}

@@ -50,6 +50,10 @@ const URL = 'http://localhost/mic';
 async function open(page) {
 	await page.route(URL, (route) => route.fulfill({ contentType: 'text/html', body: PAGE }));
 	await page.goto(URL);
+	test.skip(
+		await page.evaluate(() => typeof MediaRecorder !== 'function'),
+		'This browser build has no MediaRecorder (Playwright WebKit on Linux); run WebKit on macOS',
+	);
 }
 
 const result = async (page) => {

@@ -11,10 +11,11 @@ function install(opts) {
 		if (!s.ctx) {
 			s.ctx = new AC();
 			s.dest = s.ctx.createMediaStreamDestination();
-			// A real mic always delivers samples; without a source the track carries no frames and
-			// MediaRecorder writes an undecodable file (Chromium, WebKit).
+			// A real mic always delivers samples with a noise floor. With no source, or digital zero on a
+			// context created before the user gesture (Linux Chromium), MediaRecorder writes an
+			// undecodable file. 1e-4 is about -80 dBFS.
 			const floor = s.ctx.createConstantSource();
-			floor.offset.value = 0;
+			floor.offset.value = 1e-4;
 			floor.connect(s.dest);
 			floor.start();
 		}
@@ -47,7 +48,12 @@ function install(opts) {
 			return real(c);
 		}
 		if (s.denied) throw new DOMException(s.denied.message, s.denied.name);
-		s.ensure();
+		const ctx = s.ensure();
+		// A real mic's stream is live when getUserMedia resolves. Firefox on Linux can take over
+		// 300 ms to start the context, so wait for it (resume() was called above, inside the gesture).
+		if (ctx.state !== 'running') {
+			await Promise.race([ctx.resume().catch(() => {}), new Promise((r) => setTimeout(r, 2000))]);
+		}
 		// One clone per caller, so one consumer's track.stop() cannot end another's stream.
 		const stream = s.dest.stream.clone();
 		for (const t of stream.getAudioTracks()) {
