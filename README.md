@@ -23,7 +23,7 @@ test('records a voice memo', async ({ page }) => {
 npm install -D playwright-mock-microphone
 ```
 
-No runtime dependencies. Needs `@playwright/test` (any recent version) and Node 18 or later.
+No runtime dependencies. Needs `@playwright/test` 1.63 or later and Node 20.19 or later. Node 20.19 is the first release that can `require()` this ES module, which a CommonJS test project needs.
 
 ## API
 
