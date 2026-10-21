@@ -2,7 +2,7 @@
 
 A fake microphone for [Playwright](https://playwright.dev/) tests. Feed `getUserMedia()` a tone or an audio file, or make it deny permission, on **Chromium, Firefox and WebKit**. Recordings made through it with `MediaRecorder` decode back to the audio you fed in, and the test suite checks that on all three engines by measuring the recorded pitch.
 
-Playwright's own fake microphones cannot be told what to play. Chromium's is a launch flag, fixed for the whole browser. Since Playwright 1.62, WebKit offers mock microphones after `grantPermissions(['microphone'])`, but they deliver silence (measured on 1.63.0, WebKit 26.6, macOS). Firefox rejects the `microphone` permission. So a WebKit-first app (anything aimed at iPad or Safari) cannot otherwise test what it records.
+A test cannot change what Playwright's own fake microphones play. Chromium's is a launch flag, fixed for the whole browser. Since Playwright 1.62, WebKit offers mock microphones after `grantPermissions(['microphone'])`, but they deliver silence (measured on 1.63.0, WebKit 26.6, macOS). Firefox rejects that permission, but with the `firefoxUserPrefs` `media.navigator.streams.fake` and `media.navigator.permission.disabled` it plays a steady sine tone, also fixed at launch (measured on Firefox 155). So a WebKit-first app (anything aimed at iPad or Safari) cannot otherwise test what it records.
 
 ```js
 import { test, expect } from '@playwright/test';
