@@ -2,7 +2,7 @@
 
 A fake microphone for [Playwright](https://playwright.dev/) tests. Feed `getUserMedia()` a tone or an audio file, or make it deny permission, on **Chromium, Firefox and WebKit**. Recordings made through it with `MediaRecorder` decode back to the audio you fed in, and the test suite checks that on all three engines by measuring the recorded pitch.
 
-Playwright's built-in fake media device is a Chromium launch flag. WebKit has no equivalent, so a WebKit-first app (anything aimed at iPad or Safari) cannot otherwise test recording at all.
+Playwright's own fake microphones cannot be told what to play. Chromium's is a launch flag, fixed for the whole browser. Since Playwright 1.62, WebKit offers mock microphones after `grantPermissions(['microphone'])`, but they deliver silence (measured on 1.63.0, WebKit 26.6, macOS). Firefox rejects the `microphone` permission. So a WebKit-first app (anything aimed at iPad or Safari) cannot otherwise test what it records.
 
 ```js
 import { test, expect } from '@playwright/test';
@@ -20,7 +20,7 @@ test('records a voice memo', async ({ page }) => {
 ## Install
 
 ```sh
-npm install -D github:ya8282/playwright-mock-microphone
+npm install -D playwright-mock-microphone
 ```
 
 No runtime dependencies. Needs `@playwright/test` (any recent version) and Node 18 or later.
