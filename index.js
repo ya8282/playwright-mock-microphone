@@ -49,11 +49,12 @@ function install(opts) {
 		}
 		if (s.denied) throw new DOMException(s.denied.message, s.denied.name);
 		const ctx = s.ensure();
-		// A real mic's stream is live when getUserMedia resolves. Firefox on Linux can take over
-		// 300 ms to start the context, so wait for it (resume() was called above, inside the gesture).
-		if (ctx.state !== 'running') {
-			await Promise.race([ctx.resume().catch(() => {}), new Promise((r) => setTimeout(r, 2000))]);
-		}
+		// A real mic's stream is live when getUserMedia resolves. Firefox on Linux can take over 300 ms
+		// to start the context, and Linux Chromium can report 'running' and then render nothing for
+		// ~0.8 s, so wait (up to 2 s) until the clock has advanced. resume() was called above, in the gesture.
+		const from = ctx.currentTime;
+		const deadline = Date.now() + 2000;
+		while (ctx.currentTime - from < 0.05 && Date.now() < deadline) await new Promise((r) => setTimeout(r, 10));
 		// One clone per caller, so one consumer's track.stop() cannot end another's stream.
 		const stream = s.dest.stream.clone();
 		for (const t of stream.getAudioTracks()) {

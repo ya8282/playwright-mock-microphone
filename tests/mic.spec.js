@@ -90,6 +90,25 @@ test('records an audio file played after recording starts', async ({ page }) => 
 	expect(r.hz).toBeLessThan(240);
 });
 
+test('getUserMedia waits for the context to render, not just to report running', async ({ page }) => {
+	await mockMicrophone(page);
+	await open(page);
+	// Linux Chromium can report 'running' and then render nothing for ~0.8 s. Simulate that.
+	const ms = await page.evaluate(async () => {
+		const ctx = window.__mockMic.ensure();
+		await ctx.suspend();
+		Object.defineProperty(ctx, 'state', { get: () => 'running', configurable: true });
+		setTimeout(() => {
+			delete ctx.state;
+			ctx.resume().catch(() => {});
+		}, 500);
+		const t0 = performance.now();
+		await navigator.mediaDevices.getUserMedia({ audio: true });
+		return performance.now() - t0;
+	});
+	expect(ms).toBeGreaterThan(450);
+});
+
 test('records silence when nothing plays', async ({ page }) => {
 	await mockMicrophone(page);
 	await open(page);
